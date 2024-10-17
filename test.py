@@ -12,9 +12,88 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.schema.document import Document
 from langchain_community.embeddings import OpenAIEmbeddings
 
+import requests
+from fpdf import FPDF
+from bs4 import BeautifulSoup
+from openai import OpenAI
+import getpass
+
+client = OpenAI(api_key=os.environ['OPENAI_API_KEY'])
+
+# Set up the OpenAI API client
+
+
+def crawl_webpage(url):
+    response = requests.get(url)
+
+    print(f"Response Status Code: {response.status_code} for {url}")
+    if response.status_code == 200:
+        soup = BeautifulSoup(response.text, 'html.parser')
+        paragraphs = soup.find_all('p')
+        text_content = ' '.join([para.get_text() for para in paragraphs])
+        return text_content
+    else:
+        return None
+
+
+# List of websites to crawl
+urls = [
+    'https://www.techtarget.com/whatis/definition/pseudoscience#:~:text=The%20term%20pseudoscience%20can%20refer,stand%20up%20under%20scientific%20scrutiny.',
+    "https://astrologify.com/zodiac/signs/",
+    "https://atlasmythica.com/superstitions/",
+    "https://www.yourtango.com/self/common-superstitions-from-around-world-people-believe",
+    "https://www.livescience.com/ESP",
+    "https://en.wikipedia.org/wiki/Reflexology#:~:text=It%20is%20based%20on%20a,related%20areas%20of%20the%20body."
+]
+
+
+def save_to_pdf(text, filename):
+    # Create a PDF instance
+    pdf = FPDF()
+
+    pdf.set_auto_page_break(auto=True, margin=15)
+
+    # Set font
+    pdf.set_font("Arial", size=12)
+
+    # Example text stored in a variable
+    my_text = website_text
+
+    # Encode the text to UTF-8 and then decode it to Latin-1, replacing unencodable characters
+    # with a replacement character (e.g.,  )
+    encoded_text = my_text.encode('utf-8', 'replace').decode('latin-1')
+
+    # Add a page
+    pdf.add_page()
+
+    # Add the encoded text to the PDF using the variable
+    pdf.multi_cell(0, 10, encoded_text)
+
+    # Save the PDF
+    pdf.output(filename)
+
+
+for i, url in enumerate(urls):
+    website_text = crawl_webpage(url)
+    for i, url in enumerate(urls):
+        website_text = crawl_webpage(url)
+        if website_text:
+            # Save the extracted text to a PDF
+            filename = os.path.join("data/", f'website_content_{i+1}.pdf')
+            save_to_pdf(website_text, filename)
+            print(f"Content from {url} saved to {filename}")
+        else:
+            print(f"Failed to retrieve content from {url}")
+
+
+def load_document2():
+    document_loader = PyPDFLoader(DATA_PATH)
+    return document_loader.load()
+
+
+###################################################################
 # Ensure the OpenAI API key is set
 my_secret = os.environ['OPENAI_API_KEY']
-#os.environ["OPENAI_API_KEY"] = my_secret
 
 #set the app title
 st.title('PseudoScience app')
@@ -73,6 +152,9 @@ def get_embedding_function():
 
 
 CHROMA_PATH = "chroma"
+
+if not os.path.exists(CHROMA_PATH):
+    os.makedirs(CHROMA_PATH)
 DATA_PATH = "data"
 
 
@@ -173,4 +255,3 @@ def clear_database():
 
 if __name__ == "__main__":
     main2()
-
