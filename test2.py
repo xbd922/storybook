@@ -135,43 +135,57 @@ def add_url_and_pdf_input():
         for i, url in enumerate(urls):
             website_text = crawl_webpage(url)
             if website_text:
-                filename = os.path.join("data/", f'url_content_{i+1}.pdf')
+                # Base filename for the content from the URL
+                base_filename = os.path.join("data/", f'url_content_{i+1}.pdf')
 
-                # Save only if the PDF with that name doesn't already exist
-                if not os.path.exists(filename):
-                    save_to_pdf(website_text, filename)  # Save content to PDF
+                # Generate a unique filename if the file already exists
+                pdf_path = base_filename
+                count = 1
+                while os.path.exists(pdf_path):
+                    # Create a new filename by appending a counter
+                    pdf_path = os.path.join("data/", f'url_content_{i+1}_{count}.pdf')
+                    count += 1
 
-                    # Create a Document object to add to Chroma
-                    doc = Document(page_content=website_text, metadata={"source": url})
-                    add_to_chroma([doc])  # Add document to Chroma
+                # Save content to the unique PDF
+                save_to_pdf(website_text, pdf_path)
 
-                    st.success(f"Content from {url} saved to {filename} and added to the database.")
-                else:
-                    st.warning(f"File {filename} already exists. Content not saved to avoid overwriting.")
+                # Create a Document object to add to Chroma
+                doc = Document(page_content=website_text, metadata={"source": url})
+                add_to_chroma([doc])  # Add document to Chroma
+
+                st.success(f"Content from {url} saved to {pdf_path} and added to the database.")
             else:
                 st.error(f"Failed to retrieve content from {url}")
 
 
+
         # Process PDFs
         for i, pdf in enumerate(pdf_files):
-            # Save the uploaded PDF
-            pdf_path = os.path.join("data/", f'uploaded_pdf_{i+1}.pdf')
-            if not os.path.exists(pdf_path):  # Check if the PDF already exists
-                with open(pdf_path, "wb") as f:
-                    f.write(pdf.getbuffer())
-                st.success(f"Uploaded PDF saved to {pdf_path}")
+            # Base filename for the uploaded PDF
+            base_pdf_path = os.path.join("data/", f'uploaded_pdf_{i+1}.pdf')
 
-                # Extract text from the uploaded PDF
-                pdf_text = extract_text_from_pdf(pdf_path)
+            # Generate a unique filename if the file already exists
+            pdf_path = base_pdf_path
+            count = 1
+            while os.path.exists(pdf_path):
+                # Create a new filename by appending a counter
+                pdf_path = os.path.join("data/", f'uploaded_pdf_{i+1}_{count}.pdf')
+                count += 1
 
-                # Create a Document object to add to Chroma
-                doc = Document(page_content=pdf_text, metadata={"source": pdf_path})
-                add_to_chroma([doc])  # Add document to Chroma
+            # Save the uploaded PDF to the unique path
+            with open(pdf_path, "wb") as f:
+                f.write(pdf.getbuffer())
+            st.success(f"Uploaded PDF saved to {pdf_path}")
 
-                st.success(f"Content from {pdf_path} added to the database.")
+            # Extract text from the uploaded PDF
+            pdf_text = extract_text_from_pdf(pdf_path)
 
-            else:
-                st.warning(f"File {pdf_path} already exists. Upload not saved to avoid overwriting.")
+            # Create a Document object to add to Chroma
+            doc = Document(page_content=pdf_text, metadata={"source": pdf_path})
+            add_to_chroma([doc])  # Add document to Chroma
+
+            st.success(f"Content from {pdf_path} added to the database.")
+
 
 def extract_text_from_pdf(pdf_path):
     """Extract text from a PDF file."""
