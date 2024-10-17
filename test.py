@@ -22,7 +22,6 @@ client = OpenAI(api_key=os.environ['OPENAI_API_KEY'])
 
 # Set up the OpenAI API client
 
-
 def crawl_webpage(url):
     response = requests.get(url)
 
@@ -45,7 +44,6 @@ urls = [
     "https://www.livescience.com/ESP",
     "https://en.wikipedia.org/wiki/Reflexology#:~:text=It%20is%20based%20on%20a,related%20areas%20of%20the%20body."
 ]
-
 
 def save_to_pdf(text, filename):
     # Create a PDF instance
@@ -233,7 +231,39 @@ def calculate_chunk_ids(chunks):
         current_page_id = f"{source}:{page}"
 
         # If the page ID is the same as the last one, increment the index.
-        if current_page_id == last_page_id:
+        if current_page_id == last_page_id:import os
+import streamlit as st
+from langchain_community.vectorstores import Chroma
+from langchain_community.embeddings import OpenAIEmbeddings
+from langchain.chat_models import ChatOpenAI
+from langchain.prompts import ChatPromptTemplate
+
+import argparse
+import shutil
+from langchain_community.document_loaders import PyPDFDirectoryLoader, PyPDFLoader
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain.schema.document import Document
+
+import requests
+from fpdf import FPDF
+from bs4 import BeautifulSoup
+from openai import OpenAI
+
+client = OpenAI(api_key=os.environ['OPENAI_API_KEY'])
+
+# ... (rest of your code)
+
+def add_to_chroma(chunks: list[Document]):
+    # ... (rest of your code)
+    db = Chroma(persist_directory=CHROMA_PATH, embedding_function=get_embedding_function())
+    # ... (rest of your code)
+
+
+# Define get_embedding_function here:
+def get_embedding_function():
+    return OpenAIEmbeddings(api_key=os.environ['OPENAI_API_KEY'])
+
+# ... (rest of your code)
             current_chunk_index += 1
         else:
             current_chunk_index = 0
