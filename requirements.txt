@@ -1,4 +1,10 @@
-streamlit
 openai
-pyPDF2
-google-generativeai
+-U langchain-community
+langchain
+chromadb
+pypdf
+tiktoken
+faiss-gpu #??
+fpdf
+beautifulsoup4
+streamlit
